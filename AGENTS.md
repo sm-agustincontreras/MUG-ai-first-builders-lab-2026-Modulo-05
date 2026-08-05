@@ -47,6 +47,10 @@ files and **propose the text for you to paste here**. You always confirm it.
 | Framework (frontend) | React + Vite |
 | Database | PostgreSQL + Prisma (via Docker / docker-compose) |
 | Package manager | npm |
+| Install | `npm ci` (run in `backend/` and `frontend/`) |
+| Test (backend) | `npm --prefix backend test` |
+| Test (frontend) | `npm --prefix frontend test` |
+| Typecheck (frontend) | `tsc -b --noEmit` (in `frontend/`) |
 
 ---
 
