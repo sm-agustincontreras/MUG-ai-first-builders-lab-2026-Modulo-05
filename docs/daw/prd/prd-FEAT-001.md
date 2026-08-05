@@ -5,7 +5,7 @@
 | Ticket | FEAT-001 |
 | Tracker | none |
 | Date | 2026-08-05 |
-| PRD loops | 0 |
+| PRD loops | 1 |
 
 ## Contexto y Problema
 
@@ -52,6 +52,9 @@ construirán el resto de las funcionalidades del producto.
   completo sobre cada recurso queda fuera de alcance de este ticket)
 - NFR-04: El sistema debe mostrar un mensaje de error comprensible cuando la autenticación falla o
   se deniega el acceso por rol insuficiente (RNF-12 / RF-30 del PRD general)
+- NFR-05: Todas las acciones de este ticket (login, alta de usuario, logout) deben poder realizarse
+  exclusivamente a través de una interfaz gráfica web, sin necesitar acceso directo a la API ni a la
+  base de datos (RNF-09 del PRD general)
 
 ## Criterios de Aceptación
 
@@ -99,6 +102,6 @@ construirán el resto de las funcionalidades del producto.
 ## Dependencias
 
 - `docs/daw/prd/PRD.md` (PRD-003, PRD general del producto): este ticket implementa el recorte de
-  RF-01, RF-02, RF-24, RNF-03, RNF-07, RNF-08 y RNF-12 correspondiente a autenticación y alta de
-  usuarios. No depende de ningún otro ticket — es el primero del proyecto. El resto de los
+  RF-01, RF-02, RF-24, RNF-03, RNF-07, RNF-08, RNF-09 y RNF-12 correspondiente a autenticación y
+  alta de usuarios. No depende de ningún otro ticket — es el primero del proyecto. El resto de los
   requerimientos del PRD general (RF-03 en adelante) dependen de que este ticket esté implementado.
