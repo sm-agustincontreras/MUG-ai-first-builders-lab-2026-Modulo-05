@@ -63,6 +63,48 @@ Leave it empty and that validation has nothing to compare against, so it stops b
 
 ---
 
+## UI/Design conventions
+
+**Principios:** denso pero legible (tableros con muchas tareas sin sentirse recargados), consistencia sobre creatividad (mismos patrones de botón/card/modal en todo el sistema), motion con propósito (ninguna animación es puramente decorativa).
+
+**Paleta:**
+
+| Uso | Color | Hex |
+|---|---|---|
+| Primario (acciones, links, foco) | Indigo | `#4F46E5` |
+| Primario hover | Indigo oscuro | `#4338CA` |
+| Texto principal | Slate 900 | `#0F172A` |
+| Texto secundario | Slate 500 | `#64748B` |
+| Fondo | Slate 50 | `#F8FAFC` |
+| Bordes/separadores | Slate 200 | `#E2E8F0` |
+| Estado *Pendiente* (RF-26) | Slate 400 | `#94A3B8` |
+| Estado *En curso* (RF-26) | Blue 500 | `#3B82F6` |
+| Estado *Entregada* (RF-26) | Green 500 | `#22C55E` |
+| Error/denegado (RF-30) | Red 500 | `#EF4444` |
+| Warning | Amber 500 | `#F59E0B` |
+
+**Tipografía:** `Inter` (o `system-ui` de fallback). Escala 12/14/16/20/24/32px, pesos 400 (texto), 500 (labels), 600–700 (headings/CTAs).
+
+**Layout:** escala de espaciado base 4px (4/8/12/16/24/32/48/64). Radio de borde 8px (inputs/botones), 12px (cards/modales), full (badges de estado). Sombras en 3 niveles (`sm` reposo, `md` hover, `lg` modal).
+
+**Componentes clave:**
+- Botones: primary (relleno indigo), secondary (outline), ghost, danger — transición de color/sombra en hover, nunca instantánea.
+- Badges de estado: color semántico de la tabla de arriba (RF-26).
+- Modal de confirmación (RF-28/29): overlay con blur, entrada fade + scale desde 0.95→1.
+- Columnas de tablero (RF-11, RF-32): al arrastrar una tarjeta, elevación de sombra + escala 1.02; al soltar, transición suave a la posición final.
+- Empty state (RF-27): ilustración simple + texto, nunca pantalla en blanco.
+- Loading (RNF-11): skeleton screens en tableros/reportes, no solo spinners.
+
+**Animación/fluidez:**
+- Micro-interacciones (hover, foco): 150–200ms.
+- Transiciones de layout (modal, panel, drag-drop): 250–300ms.
+- Easing: `ease-out` en entradas, `ease-in` en salidas.
+- Respetar `prefers-reduced-motion`.
+
+**Nota sobre librerías:** adoptar algo como Framer Motion es una dependencia nueva y debe justificarse en el spec de la feature que la necesite (probablemente Tableros/RF-32), documentada con un ADR. Con CSS transitions puro también se puede cumplir esta guía sin dependencias nuevas.
+
+---
+
 ## Code conventions
 
 - **Convención de DTOs:** `class-validator` + `class-transformer` en los DTOs de NestJS para validar el contrato de cada endpoint en el backend, independiente de cualquier validación que exista en el frontend (que usa `zod`).
