@@ -1,3 +1,8 @@
+node_modules/
+dist/
+.env
+backend/generated/
+
 # BEGIN DAW — pipeline runtime, NOT committed (managed by DAW)
 #   .daw-state.json  = which phase you are in; yours, not the repo's
 #   .daw-paused/     = paused tickets
