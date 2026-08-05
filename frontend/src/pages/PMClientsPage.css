@@ -1,0 +1,105 @@
+/*
+ * Estilos de PMClientsPage: formulario de alta + listado de clientes.
+ * Usa exclusivamente las variables de `styles/tokens.css` (paleta,
+ * espaciado, radios de AGENTS.md) — sin colores/espaciados hardcodeados.
+ */
+
+.pm-clients-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+.pm-clients-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+}
+
+.pm-clients-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pm-clients-page__field label {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.pm-clients-page__field input,
+.pm-clients-page__field textarea {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--color-text);
+  transition: border-color 150ms ease-out;
+}
+
+.pm-clients-page__field input:focus,
+.pm-clients-page__field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.pm-clients-page__form button {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.pm-clients-page__form button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.pm-clients-page__form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pm-clients-page [role='alert'] {
+  color: var(--color-error);
+  margin-bottom: var(--space-4);
+}
+
+.pm-clients-page [role='status'] {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.pm-clients-page__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+}
+
+.pm-clients-page__list-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: #ffffff;
+}
+
+.pm-clients-page__list-item span {
+  color: var(--color-text-secondary);
+}

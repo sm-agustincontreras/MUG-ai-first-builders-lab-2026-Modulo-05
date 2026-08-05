@@ -25,3 +25,13 @@ model User {
 
   @@unique([email])
 }
+
+model Client {
+  id             String   @id @default(cuid())
+  name           String
+  nameNormalized String
+  description    String
+  createdAt      DateTime @default(now())
+
+  @@unique([nameNormalized])
+}

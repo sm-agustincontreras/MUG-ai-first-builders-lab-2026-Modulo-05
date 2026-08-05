@@ -3,6 +3,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './hooks/use-auth';
 import { AdminCreateUserPage } from './pages/AdminCreateUserPage';
 import { LoginPage } from './pages/LoginPage';
+import { PMClientsPage } from './pages/PMClientsPage';
 
 /**
  * Placeholder mínimo para roles no-Admin tras el login (PM/Líder/Recurso).
@@ -36,6 +37,14 @@ export function App() {
             element={
               <ProtectedRoute requiredRole="ADMIN">
                 <AdminCreateUserPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pm/clients"
+            element={
+              <ProtectedRoute requiredRole="PM">
+                <PMClientsPage />
               </ProtectedRoute>
             }
           />
