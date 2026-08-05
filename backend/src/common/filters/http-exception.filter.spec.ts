@@ -1,4 +1,4 @@
-import { ArgumentsHost, BadRequestException } from '@nestjs/common';
+import { ArgumentsHost, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpExceptionFilter } from './http-exception.filter';
 
 function createMockHost(): { host: ArgumentsHost; jsonMock: jest.Mock; statusMock: jest.Mock } {
@@ -48,5 +48,37 @@ describe('HttpExceptionFilter', () => {
     expect(payload.message).not.toContain('sensitive detail here');
     expect(JSON.stringify(payload)).not.toContain('.ts:');
     expect(payload).not.toHaveProperty('stack');
+  });
+
+  it('si getResponse() devuelve un objeto sin campo message, usa exception.message como fallback', () => {
+    const filter = new HttpExceptionFilter();
+    const { host, jsonMock, statusMock } = createMockHost();
+    const exception = new HttpException({ statusCode: 400 }, HttpStatus.BAD_REQUEST);
+
+    filter.catch(exception, host);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 400,
+        message: exception.message,
+      }),
+    );
+  });
+
+  it('si getResponse() devuelve un string plano, lo usa directamente como message', () => {
+    const filter = new HttpExceptionFilter();
+    const { host, jsonMock, statusMock } = createMockHost();
+    const exception = new HttpException('plain string response', HttpStatus.BAD_REQUEST);
+
+    filter.catch(exception, host);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 400,
+        message: 'plain string response',
+      }),
+    );
   });
 });

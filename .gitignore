@@ -3,6 +3,7 @@ dist/
 .env
 backend/generated/
 *.tsbuildinfo
+coverage/
 
 # BEGIN DAW — pipeline runtime, NOT committed (managed by DAW)
 #   .daw-state.json  = which phase you are in; yours, not the repo's

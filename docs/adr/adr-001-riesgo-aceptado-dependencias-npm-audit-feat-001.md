@@ -37,6 +37,15 @@ un fix sin breaking change disponible para estos 8 hallazgos. Resolverlos requie
 versión mayor: `@nestjs/cli`/`@nestjs/platform-express`/`@nestjs/core` de v10 a v11, y `vite`/
 `vitest` a sus majors siguientes.
 
+**Actualización (misma fecha, ronda de corrección de cobertura en VERIFY):** se agregó
+`@vitest/coverage-v8` como devDependency (necesaria para medir cobertura y cerrar el gate
+`F-VER-03`). `npm audit` la reporta como un 9º hallazgo Critical, agregado sobre la misma cadena
+`vite`/`esbuild`/`vitest` ya analizada arriba — no es una vulnerabilidad nueva ni distinta, es el
+mismo riesgo raíz visto desde un paquete más. Aplica el mismo razonamiento: `devDependency` que
+solo corre al ejecutar `npm run test:cov` localmente/en CI, nunca se empaqueta en `vite build` ni
+se sirve al browser. Se incluye en el mismo riesgo aceptado, sin necesidad de una decisión
+separada.
+
 ## Options considered
 
 ### Option 1: Bloquear el gate y forzar la actualización ahora

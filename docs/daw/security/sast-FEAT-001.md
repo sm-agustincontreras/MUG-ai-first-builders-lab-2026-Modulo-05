@@ -48,6 +48,11 @@ vulnerable específica no invocada por este código. `npm audit fix` (sin `--for
 disponibles para ninguno de los 8; resolverlos requeriría majors breaking de Nest/Vite/Vitest,
 fuera de alcance de este ticket.
 
+**Actualización (ronda de corrección de cobertura, mismo día):** se agregó `@vitest/coverage-v8`
+(devDependency, necesaria para medir cobertura y cerrar `F-VER-03`), que `npm audit` reporta como
+un 9º hallazgo Critical sobre la misma cadena `vite`/`vitest` ya cubierta arriba — mismo riesgo
+raíz, no uno nuevo. Incluida en el mismo riesgo aceptado de ADR-001.
+
 **Riesgo aceptado documentado en ADR-001**, con condiciones de revisión explícitas y ticket de
 seguimiento no bloqueante para actualizar esas dependencias.
 
