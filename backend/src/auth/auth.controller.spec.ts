@@ -289,3 +289,63 @@ describe('POST /auth/refresh', () => {
     await app.close();
   });
 });
+
+describe('POST /auth/logout', () => {
+  it('autenticado invalida el refresh token: un refresh posterior con la cookie previa responde 401 (AC-07)', async () => {
+    let testUser = buildTestUser();
+    const prismaMock = createPrismaMock();
+    prismaMock.user.findUnique.mockImplementation(
+      ({ where }: { where: { email?: string; id?: string } }) => {
+        if (where.email === testUser.email || where.id === testUser.id) {
+          return Promise.resolve(testUser);
+        }
+        return Promise.resolve(null);
+      },
+    );
+    prismaMock.user.update.mockImplementation(
+      ({ data }: { data: { refreshTokenHash: string | null } }) => {
+        testUser = { ...testUser, refreshTokenHash: data.refreshTokenHash };
+        return Promise.resolve(testUser);
+      },
+    );
+    const app = await buildApp(prismaMock);
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: testUser.email, password: VALID_PASSWORD });
+    const accessToken = loginResponse.body.accessToken as string;
+    const refreshCookie = extractRefreshCookie(loginResponse.headers['set-cookie']);
+
+    const logoutResponse = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(logoutResponse.status).toBe(200);
+    expect(logoutResponse.body).toEqual({ message: 'Sesión cerrada' });
+    // The response must clear the cookie (empty value) — Express requires
+    // the same path/domain options used on `res.cookie()` to actually clear
+    // it on the browser.
+    expect(extractRefreshCookie(logoutResponse.headers['set-cookie'])).toBe('');
+
+    const refreshAfterLogout = await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .set('Cookie', [`refresh_token=${refreshCookie}`]);
+
+    expect(refreshAfterLogout.status).toBe(401);
+    expect(refreshAfterLogout.body.message).toBe('Sesión expirada, iniciá sesión nuevamente');
+
+    await app.close();
+  });
+
+  it('sin autenticar responde 401', async () => {
+    const prismaMock = createPrismaMock();
+    const app = await buildApp(prismaMock);
+
+    const response = await request(app.getHttpServer()).post('/auth/logout');
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe('No autenticado');
+
+    await app.close();
+  });
+});

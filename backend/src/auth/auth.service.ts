@@ -94,6 +94,11 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async logout(userId: string): Promise<void> {
+    await this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
+    this.logger.log(`Logout success (userId=${userId})`);
+  }
+
   private async issueTokens(
     user: Pick<AuthenticatedUser, 'id' | 'email' | 'role'>,
   ): Promise<{ accessToken: string; refreshToken: string }> {
