@@ -30,7 +30,14 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/home" element={<HomePlaceholder />} />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <HomePlaceholder />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/users"
             element={
