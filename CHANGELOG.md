@@ -11,3 +11,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   refresh 7d rotativo con detección de reuso), alta de usuarios con RBAC (solo Admin), seed
   idempotente del Admin inicial, y UI de autenticación (React + Vite) consumiendo la API vía
   capa de servicios.
+
+### Fixed
+- [FIX-001] Al cerrar sesión desde `/home`, la UI no redirigía a `/login` (la ruta no estaba
+  protegida por `ProtectedRoute`, a diferencia de `/admin/users`).
