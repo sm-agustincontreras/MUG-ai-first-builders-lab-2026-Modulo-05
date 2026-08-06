@@ -80,6 +80,7 @@ Leave it empty and that validation has nothing to compare against, so it stops b
 | Texto principal | Slate 900 | `#0F172A` |
 | Texto secundario | Slate 500 | `#64748B` |
 | Fondo | Slate 50 | `#F8FAFC` |
+| Superficie (cards, fondo de inputs) | Blanco | `#FFFFFF` |
 | Bordes/separadores | Slate 200 | `#E2E8F0` |
 | Estado *Pendiente* (RF-26) | Slate 400 | `#94A3B8` |
 | Estado *En curso* (RF-26) | Blue 500 | `#3B82F6` |

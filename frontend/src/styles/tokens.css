@@ -1,0 +1,27 @@
+/*
+ * Variables CSS derivadas 1:1 de la sección "UI/Design conventions" de
+ * AGENTS.md. Solo se declaran los tokens que este ticket (FEAT-002) usa:
+ * color primario, texto, fondo, bordes, error, espaciado y radios. Los
+ * colores de estado de tarea (Pendiente/En curso/Entregada, RF-26) no
+ * aplican acá — se agregan en el ticket de Tableros que los necesite.
+ */
+:root {
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-text: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-bg: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-error: #EF4444;
+  --color-surface: #FFFFFF;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+}
