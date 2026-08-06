@@ -15,3 +15,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   ≤255, unicidad case-insensitive garantizada a nivel de base de datos), RBAC restringido a PM,
   y UI (`PMClientsPage`) que aplica por primera vez los tokens de diseño (paleta, tipografía,
   espaciado) definidos en `AGENTS.md`.
+  
+### Fixed
+- [FIX-001] Al cerrar sesión desde `/home`, la UI no redirigía a `/login` (la ruta no estaba
+  protegida por `ProtectedRoute`, a diferencia de `/admin/users`).
