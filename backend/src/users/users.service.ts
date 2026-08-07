@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,9 +22,18 @@ export class UsersService {
       throw new ConflictException('Ya existe una cuenta con ese email');
     }
 
+    const trimmedName = dto.name.trim();
+    if (trimmedName.length === 0) {
+      // Closes the gap `@IsNotEmpty` leaves open on strings made only of
+      // whitespace (threat model, POST /users, Tampering). The trim itself
+      // mirrors `ClientsService.create`'s pattern; the empty-after-trim
+      // guard is specific to `name` (Client has no such requirement).
+      throw new BadRequestException('El nombre no puede estar vacío');
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
     const user = await this.prisma.user.create({
-      data: { email: dto.email, passwordHash, role: dto.role },
+      data: { email: dto.email, name: trimmedName, passwordHash, role: dto.role },
     });
 
     return UserResponseDto.fromEntity(user);

@@ -25,6 +25,7 @@ const NEW_USER_PASSWORD = 'BrandNewPass123';
 interface MockUser {
   id: string;
   email: string;
+  name: string;
   passwordHash: string;
   role: UserRole;
   refreshTokenHash: string | null;
@@ -35,6 +36,7 @@ function buildTestUser(overrides: Partial<MockUser> = {}): MockUser {
   return {
     id: 'usr_1',
     email: 'admin@tabsum.test',
+    name: 'Admin User',
     passwordHash: bcrypt.hashSync(VALID_PASSWORD, 12),
     role: UserRole.ADMIN,
     refreshTokenHash: null,
@@ -55,11 +57,12 @@ function createPrismaMock(seedUsers: MockUser[]) {
   });
 
   const create = jest.fn(
-    ({ data }: { data: { email: string; passwordHash: string; role: UserRole } }) => {
+    ({ data }: { data: { email: string; name: string; passwordHash: string; role: UserRole } }) => {
       counter += 1;
       const created: MockUser = {
         id: `usr_new_${counter}`,
         email: data.email,
+        name: data.name,
         passwordHash: data.passwordHash,
         role: data.role,
         refreshTokenHash: null,
@@ -118,11 +121,17 @@ describe('POST /users', () => {
     const createResponse = await request(app.getHttpServer())
       .post('/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: 'nuevo.leader@tabsum.test', password: NEW_USER_PASSWORD, role: 'LEADER' });
+      .send({
+        email: 'nuevo.leader@tabsum.test',
+        name: 'Nuevo Leader',
+        password: NEW_USER_PASSWORD,
+        role: 'LEADER',
+      });
 
     expect(createResponse.status).toBe(201);
     expect(createResponse.body).toMatchObject({
       email: 'nuevo.leader@tabsum.test',
+      name: 'Nuevo Leader',
       role: 'LEADER',
     });
     expect(createResponse.body.id).toEqual(expect.any(String));
@@ -186,7 +195,7 @@ describe('POST /users', () => {
     const response = await request(app.getHttpServer())
       .post('/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: existing.email, password: NEW_USER_PASSWORD, role: 'RESOURCE' });
+      .send({ email: existing.email, name: 'Alguien', password: NEW_USER_PASSWORD, role: 'RESOURCE' });
 
     expect(response.status).toBe(409);
     expect(response.body.message).toBe('Ya existe una cuenta con ese email');
@@ -209,6 +218,71 @@ describe('POST /users', () => {
       .send({ email: 'invalido@tabsum.test', password: NEW_USER_PASSWORD, role: 'SUPERADMIN' });
 
     expect(response.status).toBe(400);
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+
+    await app.close();
+  });
+
+  it('sin name responde 400 (AC-02)', async () => {
+    const admin = buildTestUser();
+    const prismaMock = createPrismaMock([admin]);
+    const app = await buildApp(prismaMock);
+
+    const adminToken = await loginAs(app, { email: admin.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .post('/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ email: 'sin.nombre@tabsum.test', password: NEW_USER_PASSWORD, role: 'RESOURCE' });
+
+    expect(response.status).toBe(400);
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+
+    await app.close();
+  });
+
+  it('con name de 101 caracteres responde 400 (AC-02)', async () => {
+    const admin = buildTestUser();
+    const prismaMock = createPrismaMock([admin]);
+    const app = await buildApp(prismaMock);
+
+    const adminToken = await loginAs(app, { email: admin.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .post('/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        email: 'nombre.largo@tabsum.test',
+        name: 'a'.repeat(101),
+        password: NEW_USER_PASSWORD,
+        role: 'RESOURCE',
+      });
+
+    expect(response.status).toBe(400);
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+
+    await app.close();
+  });
+
+  it('con name de solo espacios responde 400 (mitigación threat model)', async () => {
+    const admin = buildTestUser();
+    const prismaMock = createPrismaMock([admin]);
+    const app = await buildApp(prismaMock);
+
+    const adminToken = await loginAs(app, { email: admin.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .post('/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        email: 'solo.espacios@tabsum.test',
+        name: '   ',
+        password: NEW_USER_PASSWORD,
+        role: 'RESOURCE',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('El nombre no puede estar vacío');
     expect(prismaMock.user.create).not.toHaveBeenCalled();
 
     await app.close();
