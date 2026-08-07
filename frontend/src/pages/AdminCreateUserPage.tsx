@@ -9,6 +9,7 @@ const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'PM', 'LEADER', 'RESOURCE'];
 // Espejo de `backend/src/users/dto/create-user.dto.ts`: feedback inmediato de
 // UX, nunca reemplaza la validación autoritativa del servidor.
 const createUserSchema = z.object({
+  name: z.string().trim().min(1, 'Ingresá un nombre').max(100, 'Máximo 100 caracteres'),
   email: z.string().email('Ingresá un email válido'),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
   role: z.enum(['ADMIN', 'PM', 'LEADER', 'RESOURCE']),
@@ -16,6 +17,7 @@ const createUserSchema = z.object({
 
 export function AdminCreateUserPage() {
   const { user, accessToken, logout } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('RESOURCE');
@@ -34,7 +36,7 @@ export function AdminCreateUserPage() {
     setError(null);
     setSuccessMessage(null);
 
-    const parsed = createUserSchema.safeParse({ email, password, role });
+    const parsed = createUserSchema.safeParse({ name, email, password, role });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Datos inválidos');
       return;
@@ -44,6 +46,7 @@ export function AdminCreateUserPage() {
     try {
       const created = await createUser(accessToken ?? '', parsed.data);
       setSuccessMessage(`Usuario ${created.email} creado con rol ${created.role}.`);
+      setName('');
       setEmail('');
       setPassword('');
       setRole('RESOURCE');
@@ -63,6 +66,16 @@ export function AdminCreateUserPage() {
         Cerrar sesión
       </button>
       <form onSubmit={handleSubmit} noValidate>
+        <div>
+          <label htmlFor="new-user-name">Nombre</label>
+          <input
+            id="new-user-name"
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            autoComplete="off"
+          />
+        </div>
         <div>
           <label htmlFor="new-user-email">Email</label>
           <input
