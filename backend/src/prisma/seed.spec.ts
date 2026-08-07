@@ -15,6 +15,7 @@ import { readAdminCredentials, seedAdmin, SeedPrismaClient } from '../../prisma/
 interface MockUser {
   id: string;
   email: string;
+  name: string;
   passwordHash: string;
   role: UserRole;
 }
@@ -29,11 +30,16 @@ function createSeedPrismaMock(seedUsers: MockUser[] = []): SeedPrismaClient & { 
   });
 
   const create = jest.fn(
-    ({ data }: { data: { email: string; passwordHash: string; role: UserRole } }) => {
+    ({
+      data,
+    }: {
+      data: { email: string; name: string; passwordHash: string; role: UserRole };
+    }) => {
       counter += 1;
       const created: MockUser = {
         id: `usr_seed_${counter}`,
         email: data.email,
+        name: data.name,
         passwordHash: data.passwordHash,
         role: data.role,
       };
@@ -76,6 +82,7 @@ describe('seedAdmin', () => {
     expect(prismaMock.users).toHaveLength(1);
     const [created] = prismaMock.users;
     expect(created.email).toBe(env.ADMIN_EMAIL);
+    expect(created.name).toBe('Admin');
     expect(created.role).toBe(UserRole.ADMIN);
     expect(created.passwordHash).not.toBe(env.ADMIN_PASSWORD);
     await expect(bcrypt.compare(env.ADMIN_PASSWORD, created.passwordHash)).resolves.toBe(true);

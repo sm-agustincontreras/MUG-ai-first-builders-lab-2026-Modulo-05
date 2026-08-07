@@ -20,7 +20,7 @@ export interface SeedPrismaClient {
   user: {
     findFirst: (args: { where: { role: UserRole } }) => Promise<{ id: string } | null>;
     create: (args: {
-      data: { email: string; passwordHash: string; role: UserRole };
+      data: { email: string; name: string; passwordHash: string; role: UserRole };
     }) => Promise<unknown>;
   };
 }
@@ -66,7 +66,7 @@ export async function seedAdmin(
   }
 
   const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-  await prisma.user.create({ data: { email, passwordHash, role: UserRole.ADMIN } });
+  await prisma.user.create({ data: { email, name: 'Admin', passwordHash, role: UserRole.ADMIN } });
 }
 
 async function main(): Promise<void> {
