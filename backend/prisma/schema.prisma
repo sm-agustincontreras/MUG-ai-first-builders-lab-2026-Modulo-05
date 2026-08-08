@@ -24,6 +24,10 @@ model User {
   refreshTokenHash String?
   createdAt        DateTime @default(now())
 
+  teamId     String?
+  team       Team?    @relation("TeamMembers", fields: [teamId], references: [id])
+  ownedTeams Team[]   @relation("TeamOwner")
+
   @@unique([email])
 }
 
@@ -32,6 +36,19 @@ model Client {
   name           String
   nameNormalized String
   description    String
+  createdAt      DateTime @default(now())
+
+  @@unique([nameNormalized])
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  nameNormalized String
+  description    String
+  ownerId        String
+  owner          User     @relation("TeamOwner", fields: [ownerId], references: [id])
+  members        User[]   @relation("TeamMembers")
   createdAt      DateTime @default(now())
 
   @@unique([nameNormalized])
