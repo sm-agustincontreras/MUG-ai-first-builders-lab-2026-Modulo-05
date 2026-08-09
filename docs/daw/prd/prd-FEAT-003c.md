@@ -5,7 +5,7 @@
 | Ticket | FEAT-003c |
 | Tracker | none |
 | Date | 2026-08-07T22:13:14Z |
-| PRD loops | 0 |
+| PRD loops | 1 |
 
 ## Context and Problem
 
@@ -64,3 +64,4 @@ solo lectura.
 
 - Depende de FEAT-003a (`User.name`, para identificar dueño y miembros por nombre).
 - Depende de FEAT-003b (equipos y miembros ya existentes para poder listarlos).
+- Depende de FEAT-002 (límite de <1s reutilizado en NFR-02).
