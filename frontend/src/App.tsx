@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './hooks/use-auth';
 import { AdminCreateUserPage } from './pages/AdminCreateUserPage';
+import { LeaderTeamsPage } from './pages/LeaderTeamsPage';
 import { LoginPage } from './pages/LoginPage';
 import { PMClientsPage } from './pages/PMClientsPage';
 
@@ -52,6 +53,14 @@ export function App() {
             element={
               <ProtectedRoute requiredRole="PM">
                 <PMClientsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leader/teams"
+            element={
+              <ProtectedRoute requiredRole="LEADER">
+                <LeaderTeamsPage />
               </ProtectedRoute>
             }
           />
