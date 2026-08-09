@@ -168,4 +168,52 @@ describe('LeaderTeamsPage', () => {
     expect(await screen.findByText(/no hay recursos libres para asignar/i)).toBeInTheDocument();
     expect(teamsService.listAvailableResources).toHaveBeenCalledTimes(2);
   });
+
+  it('enviar el formulario con un nombre vacío muestra el error de validación de zod y no llama a createTeam', async () => {
+    vi.mocked(teamsService.listMyTeams).mockResolvedValue([]);
+    vi.mocked(teamsService.listAvailableResources).mockResolvedValue([]);
+
+    const user = userEvent.setup();
+    render(<LeaderTeamsPage />);
+    await screen.findByText(/no tenés equipos creados todavía/i);
+
+    await user.type(screen.getByLabelText(/^descripción$/i), 'Equipo sin nombre');
+    await user.click(screen.getByRole('button', { name: /crear equipo/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ingresá un nombre');
+    expect(teamsService.createTeam).not.toHaveBeenCalled();
+  });
+
+  it('si la API responde 409 al crear un equipo, el mensaje se muestra en pantalla y el formulario conserva lo tipeado', async () => {
+    vi.mocked(teamsService.listMyTeams).mockResolvedValue([]);
+    vi.mocked(teamsService.listAvailableResources).mockResolvedValue([]);
+    vi.mocked(teamsService.createTeam).mockRejectedValue(
+      new Error('Ya existe un equipo con ese nombre'),
+    );
+
+    const user = userEvent.setup();
+    render(<LeaderTeamsPage />);
+    await screen.findByText(/no tenés equipos creados todavía/i);
+
+    await user.type(screen.getByLabelText(/^nombre$/i), 'Backend');
+    await user.type(screen.getByLabelText(/^descripción$/i), 'Equipo de backend');
+    await user.click(screen.getByRole('button', { name: /crear equipo/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya existe un equipo con ese nombre');
+    expect(screen.getByLabelText(/^nombre$/i)).toHaveValue('Backend');
+  });
+
+  it('si falla la carga inicial de equipos o recursos, se muestra el error y las listas quedan vacías en vez de romper la página', async () => {
+    vi.mocked(teamsService.listMyTeams).mockRejectedValue(new Error('No se pudo cargar el listado de equipos'));
+    vi.mocked(teamsService.listAvailableResources).mockRejectedValue(
+      new Error('No se pudo cargar el listado de recursos libres'),
+    );
+
+    render(<LeaderTeamsPage />);
+
+    expect(await screen.findByText('No se pudo cargar el listado de equipos')).toBeInTheDocument();
+    expect(await screen.findByText('No se pudo cargar el listado de recursos libres')).toBeInTheDocument();
+    expect(await screen.findByText(/no tenés equipos creados todavía/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no hay recursos libres para asignar/i)).toBeInTheDocument();
+  });
 });
