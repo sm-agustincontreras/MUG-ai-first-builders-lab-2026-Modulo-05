@@ -27,6 +27,12 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   model, y ve listados sus propios equipos y los recursos disponibles. UI (`LeaderTeamsPage`) con
   el mismo patrón de formulario + listado que `PMClientsPage`. Base para la composición de
   equipos (siguiente sub-ticket FEAT-003c).
+- [FEAT-003c] Composición de equipos: PM y Líder consultan la composición de todos los equipos
+  del sistema (nombre, descripción, dueño y miembros, identificados por nombre); Recurso accede
+  a la misma vista en modo exclusivamente de lectura, sin exponer acciones de creación de equipo
+  ni de asignación de recursos. Nuevo endpoint `GET /teams/composition` (primer uso de
+  `@Roles` con 3 roles simultáneos) y vista `TeamsCompositionPage` en `/teams/composition`;
+  `ProtectedRoute` ahora acepta un array de roles permitidos.
 
 ### Fixed
 - [FIX-001] Al cerrar sesión desde `/home`, la UI no redirigía a `/login` (la ruta no estaba
