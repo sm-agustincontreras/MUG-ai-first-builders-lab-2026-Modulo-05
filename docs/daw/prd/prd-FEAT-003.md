@@ -11,8 +11,8 @@
 | Sub-ticket | Title | PRD | Dependencies | Status |
 |---|---|---|---|---|
 | FEAT-003a | User.name obligatorio | prd-FEAT-003a.md | none | done — PR #6 (draft), branch `feat/FEAT-003a-user-name` |
-| FEAT-003b | Alta de equipos y asignación de recursos | prd-FEAT-003b.md | depends on a | active — se ramifica desde `feat/FEAT-003a-user-name` |
-| FEAT-003c | Composición de equipos | prd-FEAT-003c.md | depends on b | pending |
+| FEAT-003b | Alta de equipos y asignación de recursos | prd-FEAT-003b.md | depends on a | done — PR #7 (draft) contra `feat/FEAT-003a-user-name`; se mergea a mano en orden (PR #6 primero, luego #7) |
+| FEAT-003c | Composición de equipos | prd-FEAT-003c.md | depends on b | pending — arranca recién cuando FEAT-003a y FEAT-003b estén mergeados a `main` (decisión del usuario en el cierre de FEAT-003b) |
 
 ## Suggested implementation order
 
