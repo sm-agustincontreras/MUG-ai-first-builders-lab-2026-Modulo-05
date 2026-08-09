@@ -5,6 +5,7 @@ import { AdminCreateUserPage } from './pages/AdminCreateUserPage';
 import { LeaderTeamsPage } from './pages/LeaderTeamsPage';
 import { LoginPage } from './pages/LoginPage';
 import { PMClientsPage } from './pages/PMClientsPage';
+import { TeamsCompositionPage } from './pages/TeamsCompositionPage';
 
 /**
  * Placeholder mínimo para roles no-Admin tras el login (PM/Líder/Recurso).
@@ -61,6 +62,14 @@ export function App() {
             element={
               <ProtectedRoute requiredRole="LEADER">
                 <LeaderTeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/composition"
+            element={
+              <ProtectedRoute requiredRole={['PM', 'LEADER', 'RESOURCE']}>
+                <TeamsCompositionPage />
               </ProtectedRoute>
             }
           />

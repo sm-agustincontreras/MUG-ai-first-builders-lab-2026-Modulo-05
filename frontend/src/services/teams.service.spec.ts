@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { assignResource, createTeam, listAvailableResources, listMyTeams } from './teams.service';
+import {
+  assignResource,
+  createTeam,
+  listAllTeamsComposition,
+  listAvailableResources,
+  listMyTeams,
+} from './teams.service';
 
 describe('teams.service — createTeam', () => {
   afterEach(() => {
@@ -294,5 +300,87 @@ describe('teams.service — listMyTeams', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeResponse));
 
     await expect(listMyTeams('access-token')).rejects.toThrow('Error 500');
+  });
+});
+
+describe('teams.service — listAllTeamsComposition', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('resuelve con la composición de todos los equipos cuando fetch responde 200 y arma la URL/headers correctos', async () => {
+    const composition = [
+      {
+        id: 'team-1',
+        name: 'Backend',
+        description: 'Equipo de backend',
+        owner: { id: 'leader-1', name: 'Ana Líder' },
+        members: [{ id: 'resource-1', name: 'Beto Recurso' }],
+      },
+    ];
+    const fakeResponse = {
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(composition),
+    } as Response;
+
+    const fetchMock = vi.fn().mockResolvedValue(fakeResponse);
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(listAllTeamsComposition('access-token')).resolves.toEqual(composition);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/teams/composition'),
+      expect.objectContaining({
+        method: 'GET',
+        credentials: 'include',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer access-token',
+        }),
+      }),
+    );
+  });
+
+  it('resuelve con [] cuando fetch responde 200 con lista vacía', async () => {
+    const fakeResponse = {
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([]),
+    } as Response;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeResponse));
+
+    await expect(listAllTeamsComposition('access-token')).resolves.toEqual([]);
+  });
+
+  it('relanza el error de la API cuando fetch responde 403, en vez de devolver undefined', async () => {
+    const fakeResponse = {
+      ok: false,
+      status: 403,
+      json: () =>
+        Promise.resolve({
+          statusCode: 403,
+          message: 'No tenés permiso para realizar esta acción',
+          error: 'Forbidden',
+        }),
+    } as Response;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeResponse));
+
+    await expect(listAllTeamsComposition('access-token')).rejects.toThrow(
+      'No tenés permiso para realizar esta acción',
+    );
+  });
+
+  it('relanza un mensaje genérico "Error {status}" cuando el body no es JSON parseable', async () => {
+    const fakeResponse = {
+      ok: false,
+      status: 500,
+      json: () => Promise.reject(new Error('Unexpected token < in JSON')),
+    } as Response;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeResponse));
+
+    await expect(listAllTeamsComposition('access-token')).rejects.toThrow('Error 500');
   });
 });

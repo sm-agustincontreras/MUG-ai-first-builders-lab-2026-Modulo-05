@@ -22,6 +22,19 @@ export interface TeamMember {
   name: string;
 }
 
+export interface TeamCompositionMember {
+  id: string;
+  name: string;
+}
+
+export interface TeamComposition {
+  id: string;
+  name: string;
+  description: string;
+  owner: TeamCompositionMember;
+  members: TeamCompositionMember[];
+}
+
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
     const body: unknown = await response.json();
@@ -98,4 +111,15 @@ export async function listMyTeams(accessToken: string): Promise<Team[]> {
     },
   });
   return handleResponse<Team[]>(response);
+}
+
+export async function listAllTeamsComposition(accessToken: string): Promise<TeamComposition[]> {
+  const response = await fetch(`${API_URL}/teams/composition`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return handleResponse<TeamComposition[]>(response);
 }
