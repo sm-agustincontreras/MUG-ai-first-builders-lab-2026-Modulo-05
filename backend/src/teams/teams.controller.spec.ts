@@ -113,7 +113,13 @@ function createUserPrismaMock(seedUsers: MockUser[]) {
   return { users, user: { findUnique, findUniqueOrThrow, update, updateMany, findMany } };
 }
 
-function createTeamPrismaMock(seedTeams: MockTeam[] = []) {
+/**
+ * `seedUsers` is only consulted by `findMany` when called with `include`
+ * (the shape `listAllComposition` uses) — it cross-references `ownerId`/
+ * `teamId` against the seeded users to resolve the `owner`/`members`
+ * relations, mirroring what Prisma's real `include` does.
+ */
+function createTeamPrismaMock(seedTeams: MockTeam[] = [], seedUsers: MockUser[] = []) {
   const teams = [...seedTeams];
   let counter = 0;
 
@@ -146,10 +152,37 @@ function createTeamPrismaMock(seedTeams: MockTeam[] = []) {
     },
   );
 
-  const findMany = jest.fn(({ where }: { where?: { ownerId?: string } } = {}) => {
-    const filtered = where?.ownerId !== undefined ? teams.filter((t) => t.ownerId === where.ownerId) : [...teams];
-    return Promise.resolve(filtered);
-  });
+  const findMany = jest.fn(
+    (
+      args: {
+        where?: { ownerId?: string };
+        include?: { owner?: boolean; members?: boolean };
+        orderBy?: { name?: 'asc' | 'desc' };
+      } = {},
+    ): Promise<(MockTeam & { owner?: MockUser | null; members?: MockUser[] })[]> => {
+      let filtered =
+        args.where?.ownerId !== undefined ? teams.filter((t) => t.ownerId === args.where!.ownerId) : [...teams];
+
+      if (args.orderBy?.name) {
+        const direction = args.orderBy.name;
+        filtered = [...filtered].sort((a, b) =>
+          direction === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name),
+        );
+      }
+
+      if (args.include) {
+        return Promise.resolve(
+          filtered.map((t) => ({
+            ...t,
+            owner: seedUsers.find((u) => u.id === t.ownerId) ?? null,
+            members: seedUsers.filter((u) => u.teamId === t.id),
+          })),
+        );
+      }
+
+      return Promise.resolve(filtered);
+    },
+  );
 
   return { teams, team: { findUnique, create, findMany } };
 }
@@ -625,6 +658,194 @@ describe('GET /teams/mine', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0].id).toBe('team_1');
+
+    await app.close();
+  });
+});
+
+describe('createTeamPrismaMock findMany with include', () => {
+  it('resuelve owner y members contra los usuarios sembrados cuando se llama con include', async () => {
+    const owner = buildTestUser({ id: 'usr_owner', email: 'owner@tabsum.test', name: 'Ana Líder' });
+    const member = buildTestUser({
+      id: 'usr_member',
+      email: 'member@tabsum.test',
+      name: 'Beto Recurso',
+      role: UserRole.RESOURCE,
+      teamId: 'team_1',
+    });
+    const teamMock = createTeamPrismaMock(
+      [
+        {
+          id: 'team_1',
+          name: 'Equipo Alfa',
+          nameNormalized: 'equipo alfa',
+          description: 'Descripción',
+          ownerId: owner.id,
+          createdAt: new Date('2026-01-01'),
+        },
+      ],
+      [owner, member],
+    );
+
+    const result = await teamMock.team.findMany({
+      include: { owner: true, members: true },
+      orderBy: { name: 'asc' },
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.owner).toMatchObject({ id: owner.id, name: owner.name });
+    expect(result[0]?.members).toHaveLength(1);
+    expect(result[0]?.members?.[0]).toMatchObject({ id: member.id, name: member.name });
+  });
+});
+
+describe('GET /teams/composition', () => {
+  function buildCompositionScenario() {
+    const owner = buildTestUser({ id: 'usr_owner', email: 'owner@tabsum.test', name: 'Ana Líder' });
+    const member = buildTestUser({
+      id: 'usr_member',
+      email: 'member@tabsum.test',
+      name: 'Beto Recurso',
+      role: UserRole.RESOURCE,
+      teamId: 'team_1',
+    });
+    const team: MockTeam = {
+      id: 'team_1',
+      name: 'Equipo Alfa',
+      nameNormalized: 'equipo alfa',
+      description: 'Equipo de prueba',
+      ownerId: owner.id,
+      createdAt: new Date('2026-01-01'),
+    };
+    return { owner, member, team };
+  }
+
+  it('PM autenticado recibe 200 con la composición completa de todos los equipos (AC-01)', async () => {
+    const { owner, member, team } = buildCompositionScenario();
+    const pm = buildTestUser({ id: 'usr_pm', email: 'pm@tabsum.test', role: UserRole.PM });
+    const userMock = createUserPrismaMock([owner, member, pm]);
+    const teamMock = createTeamPrismaMock([team], [owner, member, pm]);
+    const app = await buildApp(userMock, teamMock);
+
+    const pmToken = await loginAs(app, { email: pm.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .get('/teams/composition')
+      .set('Authorization', `Bearer ${pmToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        owner: { id: owner.id, name: owner.name },
+        members: [{ id: member.id, name: member.name }],
+      },
+    ]);
+
+    await app.close();
+  });
+
+  it('LEADER autenticado recibe 200 con la composición completa (AC-01)', async () => {
+    const { owner, member, team } = buildCompositionScenario();
+    const userMock = createUserPrismaMock([owner, member]);
+    const teamMock = createTeamPrismaMock([team], [owner, member]);
+    const app = await buildApp(userMock, teamMock);
+
+    const leaderToken = await loginAs(app, { email: owner.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .get('/teams/composition')
+      .set('Authorization', `Bearer ${leaderToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toMatchObject({
+      name: team.name,
+      description: team.description,
+      owner: { id: owner.id, name: owner.name },
+      members: [{ id: member.id, name: member.name }],
+    });
+
+    await app.close();
+  });
+
+  it('RESOURCE autenticado recibe 200 con la misma composición, sin campos de acción/mutación (AC-02)', async () => {
+    const { owner, member, team } = buildCompositionScenario();
+    const userMock = createUserPrismaMock([owner, member]);
+    const teamMock = createTeamPrismaMock([team], [owner, member]);
+    const app = await buildApp(userMock, teamMock);
+
+    const resourceToken = await loginAs(app, { email: member.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .get('/teams/composition')
+      .set('Authorization', `Bearer ${resourceToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        owner: { id: owner.id, name: owner.name },
+        members: [{ id: member.id, name: member.name }],
+      },
+    ]);
+    // El DTO no expone email/role/estado ni ningún campo de acción/mutación —
+    // solo puede probarse leyendo la forma exacta del payload (AC-02).
+    expect(Object.keys(response.body[0])).toEqual(['id', 'name', 'description', 'owner', 'members']);
+    expect(Object.keys(response.body[0].owner)).toEqual(['id', 'name']);
+    expect(Object.keys(response.body[0].members[0])).toEqual(['id', 'name']);
+
+    await app.close();
+  });
+
+  it('sin autenticar responde 401 (AC-03)', async () => {
+    const userMock = createUserPrismaMock([]);
+    const teamMock = createTeamPrismaMock([], []);
+    const app = await buildApp(userMock, teamMock);
+
+    const response = await request(app.getHttpServer()).get('/teams/composition');
+
+    expect(response.status).toBe(401);
+
+    await app.close();
+  });
+
+  it('sin equipos creados responde 200 con [] (soporta AC-04)', async () => {
+    const pm = buildTestUser({ id: 'usr_pm', email: 'pm@tabsum.test', role: UserRole.PM });
+    const userMock = createUserPrismaMock([pm]);
+    const teamMock = createTeamPrismaMock([], [pm]);
+    const app = await buildApp(userMock, teamMock);
+
+    const pmToken = await loginAs(app, { email: pm.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .get('/teams/composition')
+      .set('Authorization', `Bearer ${pmToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+
+    await app.close();
+  });
+
+  it('ADMIN autenticado (rol fuera de PM/LEADER/RESOURCE) recibe 403', async () => {
+    const { owner, member, team } = buildCompositionScenario();
+    const admin = buildTestUser({ id: 'usr_admin', email: 'admin@tabsum.test', role: UserRole.ADMIN });
+    const userMock = createUserPrismaMock([owner, member, admin]);
+    const teamMock = createTeamPrismaMock([team], [owner, member, admin]);
+    const app = await buildApp(userMock, teamMock);
+
+    const adminToken = await loginAs(app, { email: admin.email, password: VALID_PASSWORD });
+
+    const response = await request(app.getHttpServer())
+      .get('/teams/composition')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(response.status).toBe(403);
 
     await app.close();
   });

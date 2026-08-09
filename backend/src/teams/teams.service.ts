@@ -3,6 +3,7 @@ import { UserRole } from '../../generated/prisma';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssignResourceDto } from './dto/assign-resource.dto';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { TeamCompositionResponseDto } from './dto/team-composition-response.dto';
 import { TeamMemberResponseDto } from './dto/team-member-response.dto';
 import { TeamResponseDto } from './dto/team-response.dto';
 
@@ -67,5 +68,13 @@ export class TeamsService {
   async listOwnedByLeader(ownerId: string): Promise<TeamResponseDto[]> {
     const teams = await this.prisma.team.findMany({ where: { ownerId } });
     return teams.map((t) => TeamResponseDto.fromEntity(t));
+  }
+
+  async listAllComposition(): Promise<TeamCompositionResponseDto[]> {
+    const teams = await this.prisma.team.findMany({
+      include: { owner: true, members: true },
+      orderBy: { name: 'asc' },
+    });
+    return teams.map((t) => TeamCompositionResponseDto.fromEntity(t));
   }
 }

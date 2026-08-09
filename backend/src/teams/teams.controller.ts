@@ -7,6 +7,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AssignResourceDto } from './dto/assign-resource.dto';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { TeamCompositionResponseDto } from './dto/team-composition-response.dto';
 import { TeamMemberResponseDto } from './dto/team-member-response.dto';
 import { TeamResponseDto } from './dto/team-response.dto';
 import { TeamsService } from './teams.service';
@@ -58,5 +59,12 @@ export class TeamsController {
   @Get('mine')
   async listMine(@Req() req: AuthenticatedRequest): Promise<TeamResponseDto[]> {
     return this.teamsService.listOwnedByLeader(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PM, UserRole.LEADER, UserRole.RESOURCE)
+  @Get('composition')
+  async listComposition(): Promise<TeamCompositionResponseDto[]> {
+    return this.teamsService.listAllComposition();
   }
 }
