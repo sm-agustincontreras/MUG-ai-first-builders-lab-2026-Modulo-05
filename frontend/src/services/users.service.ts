@@ -8,6 +8,7 @@ export type { UserRole };
 
 export interface CreateUserPayload {
   email: string;
+  name: string;
   password: string;
   role: UserRole;
 }
@@ -15,6 +16,7 @@ export interface CreateUserPayload {
 export interface CreatedUser {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
   createdAt: string;
 }

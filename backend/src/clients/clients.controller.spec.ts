@@ -24,6 +24,7 @@ const VALID_PASSWORD = 'ValidPass123';
 interface MockUser {
   id: string;
   email: string;
+  name: string;
   passwordHash: string;
   role: UserRole;
   refreshTokenHash: string | null;
@@ -42,6 +43,7 @@ function buildTestUser(overrides: Partial<MockUser> = {}): MockUser {
   return {
     id: 'usr_1',
     email: 'pm@tabsum.test',
+    name: 'Test PM',
     passwordHash: bcrypt.hashSync(VALID_PASSWORD, 12),
     role: UserRole.PM,
     refreshTokenHash: null,

@@ -10,6 +10,7 @@ describe('users.service — createUser', () => {
     const createdUser = {
       id: 'user-1',
       email: 'nuevo@example.com',
+      name: 'Nuevo Usuario',
       role: 'RESOURCE',
       createdAt: '2026-01-01T00:00:00.000Z',
     };
@@ -24,6 +25,7 @@ describe('users.service — createUser', () => {
     await expect(
       createUser('access-token', {
         email: 'nuevo@example.com',
+        name: 'Nuevo Usuario',
         password: 'password123',
         role: 'RESOURCE',
       }),
@@ -42,6 +44,7 @@ describe('users.service — createUser', () => {
     await expect(
       createUser('access-token', {
         email: 'duplicado@example.com',
+        name: 'Usuario Duplicado',
         password: 'password123',
         role: 'RESOURCE',
       }),

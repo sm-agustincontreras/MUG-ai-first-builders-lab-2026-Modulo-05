@@ -35,6 +35,7 @@ describe('AdminCreateUserPage', () => {
     vi.mocked(usersService.createUser).mockResolvedValue({
       id: 'u2',
       email: 'nuevo@tabsum.com',
+      name: 'Nuevo Usuario',
       role: 'PM',
       createdAt: new Date().toISOString(),
     });
@@ -42,12 +43,14 @@ describe('AdminCreateUserPage', () => {
     const user = userEvent.setup();
     render(<AdminCreateUserPage />);
 
+    await user.type(screen.getByLabelText(/nombre/i), 'Nuevo Usuario');
     await user.type(screen.getByLabelText(/email/i), 'nuevo@tabsum.com');
     await user.type(screen.getByLabelText(/contraseña/i), 'password123');
     await user.selectOptions(screen.getByLabelText(/rol/i), 'PM');
     await user.click(screen.getByRole('button', { name: /crear usuario/i }));
 
     expect(usersService.createUser).toHaveBeenCalledWith('admin-token', {
+      name: 'Nuevo Usuario',
       email: 'nuevo@tabsum.com',
       password: 'password123',
       role: 'PM',
@@ -61,6 +64,7 @@ describe('AdminCreateUserPage', () => {
     const user = userEvent.setup();
     render(<AdminCreateUserPage />);
 
+    await user.type(screen.getByLabelText(/nombre/i), 'Usuario Repetido');
     await user.type(screen.getByLabelText(/email/i), 'repetido@tabsum.com');
     await user.type(screen.getByLabelText(/contraseña/i), 'password123');
     await user.selectOptions(screen.getByLabelText(/rol/i), 'PM');

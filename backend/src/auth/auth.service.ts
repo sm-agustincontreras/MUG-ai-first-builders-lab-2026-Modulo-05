@@ -15,6 +15,7 @@ const SESSION_EXPIRED_ERROR = 'Sesión expirada, iniciá sesión nuevamente';
 interface AuthenticatedUser {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
   passwordHash: string;
   refreshTokenHash: string | null;
