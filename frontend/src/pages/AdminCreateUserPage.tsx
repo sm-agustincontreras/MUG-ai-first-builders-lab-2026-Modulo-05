@@ -16,7 +16,7 @@ const createUserSchema = z.object({
 });
 
 export function AdminCreateUserPage() {
-  const { user, accessToken, logout } = useAuth();
+  const { user, accessToken } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,9 +62,6 @@ export function AdminCreateUserPage() {
   return (
     <div>
       <h1>Alta de usuario</h1>
-      <button type="button" onClick={() => void logout()}>
-        Cerrar sesión
-      </button>
       <form onSubmit={handleSubmit} noValidate>
         <div>
           <label htmlFor="new-user-name">Nombre</label>

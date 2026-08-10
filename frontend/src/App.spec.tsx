@@ -19,6 +19,7 @@ vi.mock('./services/auth.service', async () => {
 const mockUser = {
   id: 'u1',
   email: 'pm@tabsum.com',
+  name: 'Pau Martínez',
   role: 'PM' as const,
   createdAt: '2026-01-01T00:00:00.000Z',
 };
@@ -43,7 +44,7 @@ describe('App — ruta /home (FIX-001: logout debe redirigir a /login)', () => {
     vi.mocked(authService.logout).mockReset();
   });
 
-  it('regresión: cerrar sesión desde /home navega a /login (no se queda en /home)', async () => {
+  it('regresión: login como PM navega a /home con el header de sus enlaces y bienvenida, y cerrar sesión desde el header navega a /login', async () => {
     window.history.pushState({}, '', '/login');
     const user = userEvent.setup();
     render(<App />);
@@ -51,31 +52,27 @@ describe('App — ruta /home (FIX-001: logout debe redirigir a /login)', () => {
     await loginAsPm(user);
 
     // Login exitoso de un rol no-Admin navega a /home (LoginPage.tsx:34).
-    expect(await screen.findByText(/Sesión iniciada como pm@tabsum\.com/)).toBeInTheDocument();
+    expect(await screen.findByText(/Bienvenido, Pau Martínez\. Estás logueado como PM\./)).toBeInTheDocument();
+    // El header (AppHeader, Block 1) muestra los enlaces de PM (AC-01/AC-02).
+    expect(screen.getByRole('link', { name: 'Clientes' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Composición de equipos' })).toBeInTheDocument();
+    // El contenido de HomePage (AC-07) no incluye ningún botón de logout propio:
+    // el único botón "Cerrar sesión" en pantalla es el del header (AC-08).
+    expect(screen.getAllByRole('button', { name: /cerrar sesión/i })).toHaveLength(1);
 
     await user.click(screen.getByRole('button', { name: /cerrar sesión/i }));
 
     expect(await screen.findByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument();
-    expect(screen.queryByText(/Sesión iniciada como/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Bienvenido,/)).not.toBeInTheDocument();
   });
 
-  it('sin sesión, montar /home redirige de inmediato a /login sin renderizar el placeholder', async () => {
+  it('sin sesión, montar /home redirige de inmediato a /login sin renderizar AppHeader ni el contenido de HomePage', async () => {
     window.history.pushState({}, '', '/home');
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument();
-    expect(screen.queryByText(/Sesión iniciada como/)).not.toBeInTheDocument();
-  });
-
-  it('con sesión iniciada, /home renderiza el placeholder normalmente (caso feliz no regresiona)', async () => {
-    window.history.pushState({}, '', '/login');
-    const user = userEvent.setup();
-    render(<App />);
-
-    await loginAsPm(user);
-
-    expect(await screen.findByText(/Sesión iniciada como pm@tabsum\.com \(PM\)/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /cerrar sesión/i })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /iniciar sesión/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Bienvenido,/)).not.toBeInTheDocument();
+    expect(screen.queryByText('TabSum+')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /cerrar sesión/i })).not.toBeInTheDocument();
   });
 });

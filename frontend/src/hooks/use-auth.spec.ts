@@ -19,6 +19,7 @@ describe('useAuth', () => {
     const loggedInUser = {
       id: 'u1',
       email: 'user@example.com',
+      name: 'User Uno',
       role: 'ADMIN' as const,
       createdAt: '2026-01-01T00:00:00.000Z',
     };

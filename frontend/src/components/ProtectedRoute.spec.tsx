@@ -3,6 +3,9 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { ProtectedRoute } from './ProtectedRoute';
 
+// `AppHeader` (Block 1) lee la sesión con su propio `useAuth()` — se mockea
+// acá con el mismo mock compartido para que sus asserts (nombre de app,
+// enlaces por rol) reflejen el mismo estado de sesión que `ProtectedRoute`.
 const mockUseAuth = vi.fn();
 vi.mock('../hooks/use-auth', () => ({
   useAuth: () => mockUseAuth(),
@@ -32,11 +35,18 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Contenido protegido')).not.toBeInTheDocument();
   });
 
-  it('con sesión y rol correcto, renderiza el contenido protegido', () => {
+  it('con sesión y rol correcto, renderiza AppHeader junto con el contenido protegido', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
-      user: { id: 'u1', email: 'admin@example.com', role: 'ADMIN', createdAt: '2026-01-01T00:00:00.000Z' },
+      user: {
+        id: 'u1',
+        email: 'admin@example.com',
+        name: 'Admin Uno',
+        role: 'ADMIN',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
       accessToken: 'token',
+      logout: vi.fn(),
     });
 
     render(
@@ -56,14 +66,24 @@ describe('ProtectedRoute', () => {
     );
 
     expect(screen.getByText('Contenido protegido')).toBeInTheDocument();
+    expect(screen.getByText('TabSum+')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Alta de usuarios' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /cerrar sesión/i })).toBeInTheDocument();
     expect(screen.queryByText('Página de login')).not.toBeInTheDocument();
   });
 
-  it('con sesión pero rol incorrecto, muestra el mensaje de acceso denegado en vez de redirigir o crashear', () => {
+  it('con sesión pero rol incorrecto, muestra AppHeader junto con el mensaje de acceso denegado (no solo el mensaje solo)', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
-      user: { id: 'u2', email: 'resource@example.com', role: 'RESOURCE', createdAt: '2026-01-01T00:00:00.000Z' },
+      user: {
+        id: 'u2',
+        email: 'resource@example.com',
+        name: 'Recurso Dos',
+        role: 'RESOURCE',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
       accessToken: 'token',
+      logout: vi.fn(),
     });
 
     render(
@@ -83,6 +103,8 @@ describe('ProtectedRoute', () => {
     );
 
     expect(screen.getByRole('alert')).toHaveTextContent('No tenés permiso para acceder a esta página.');
+    expect(screen.getByText('TabSum+')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /cerrar sesión/i })).toBeInTheDocument();
     expect(screen.queryByText('Contenido protegido')).not.toBeInTheDocument();
     expect(screen.queryByText('Página de login')).not.toBeInTheDocument();
   });
