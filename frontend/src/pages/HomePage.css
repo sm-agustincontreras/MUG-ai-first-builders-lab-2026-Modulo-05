@@ -1,0 +1,13 @@
+/*
+ * Estilos de HomePage: mensaje de bienvenida de /home. Usa exclusivamente
+ * las variables de `styles/tokens.css` (paleta, espaciado, radios de
+ * AGENTS.md) — sin colores/espaciados hardcodeados.
+ */
+
+.home-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}

@@ -34,7 +34,13 @@ describe('LoginPage', () => {
   it('un envío exitoso llama a auth.service.login() con los valores del formulario y redirige', async () => {
     vi.mocked(authService.login).mockResolvedValue({
       accessToken: 'token-123',
-      user: { id: '1', email: 'admin@tabsum.com', role: 'ADMIN', createdAt: new Date().toISOString() },
+      user: {
+        id: '1',
+        email: 'admin@tabsum.com',
+        name: 'Admin Tabsum',
+        role: 'ADMIN',
+        createdAt: new Date().toISOString(),
+      },
     });
 
     const user = userEvent.setup();
