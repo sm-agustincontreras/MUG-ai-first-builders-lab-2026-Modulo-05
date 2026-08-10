@@ -33,6 +33,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   ni de asignación de recursos. Nuevo endpoint `GET /teams/composition` (primer uso de
   `@Roles` con 3 roles simultáneos) y vista `TeamsCompositionPage` en `/teams/composition`;
   `ProtectedRoute` ahora acepta un array de roles permitidos.
+- [FEAT-004] Home diferenciado por rol con navegación: header de navegación persistente
+  (`AppHeader`) en toda pantalla protegida, con enlaces filtrados por rol (PM: Clientes +
+  Composición de equipos; Líder: Equipos + Composición de equipos; Recurso: Composición de
+  equipos; Admin: Alta de usuarios), enlace activo distinguible (`aria-current`) y control de
+  cerrar sesión centralizado. `/home` deja de ser un placeholder y muestra un mensaje de
+  bienvenida con nombre y rol del usuario.
+
+### Changed
+- [FEAT-004] El control de cerrar sesión se retira del contenido de `/home` y de
+  `AdminCreateUserPage`: ahora vive únicamente en el header persistente, disponible en toda
+  pantalla protegida.
 
 ### Fixed
 - [FIX-001] Al cerrar sesión desde `/home`, la UI no redirigía a `/login` (la ruta no estaba
